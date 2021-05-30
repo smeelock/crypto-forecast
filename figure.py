@@ -70,8 +70,34 @@ def showStudyResults(path, show_max=20):
     # best[['value', 'duration(s)', 'batch_size', 'bidirectional', 'cell', 'dropout', 'hidden', 'lr', 'nlayers', 'use_attention']]
     return best
 
+def makeBoxplots(studies, names=None):
+    """ Plot boxplot for each study """
+    boxplots = []
+    for i, path in enumerate(studies):
+        study = joblib.load(path)
+        df = study.trials_dataframe()
+        df = df.sort_values('value', ascending=True)
+        df['study'] = names[i] if names else i
+        df['rank'] = range(1, df.shape[0]+1)
+        boxplots.append(df)
+
+    boxplots = pd.concat(boxplots)
+    n = boxplots.shape[0] // len(studies)
+    best10 = boxplots[boxplots['rank'] < n//10]
+    best20 = boxplots[boxplots['rank'] < n//20]
+    ax = sns.boxplot(x="study", y="value", data=boxplots)
+    ax.set_ylabel("test loss")
+    ax.figure.savefig("boxplot_all.png")
+
     plt.figure()
-    return sns.lineplot(data=df, x='step', y='loss', hue='trial')
+    ax10 = sns.boxplot(x="study", y="value", data=best10)
+    ax10.set_ylabel("test loss")
+    ax10.figure.savefig("boxplot_best10.png")
+
+    plt.figure()
+    ax20 = sns.boxplot(x="study", y="value", data=best20)
+    ax20.set_ylabel("test loss")
+    ax20.figure.savefig("boxplot_best20.png")
 
 
 def plotComparison(filepath, datafile):
