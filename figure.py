@@ -102,7 +102,7 @@ def makeBoxplots(studies, names=None):
 
 def plotComparison(filepath, datafile):
     # comparison real/predicted
-    state = torch.load(os.path.join(filepath, 'checkpoint.pth.tar'))
+    state = torch.load(os.path.join(filepath, 'checkpoint.pth.tar'), map_location='cpu')
     assert 'model' in state.keys(), "Incomplete state file, must contain 'model'."
     assert 'args' in state.keys(), "Incomplete state file, must contain 'args'."
 
@@ -111,37 +111,38 @@ def plotComparison(filepath, datafile):
     args['split'] = 0 # only testing, no training data
     args['shuffle'] = False # don't shuffle
     args['datafile'] = datafile
-    args = collections.namedtuple("args", args.keys())(*args.values())
     
     device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
+    model = model.to(device)
     iterators, _ = makeSplits(args, device)
     _, val_iter, _ = iterators
 
     df = rawData(args)[['time', 'close']]
     df = df.rename(columns={'close': 'price'})
-    scaler = MinMaxScaler(feature_range=(-1, 1))
-    df['price'] = scaler.fit_transform(df['price'].values.reshape(-1, 1))
+    scaler = MinMaxScaler(feature_range=(-1, 1)).fit(df['price'].values.reshape(-1, 1))
     df['step'] = range(df.shape[0])
     df['type'] = 'real'
 
-    timestep = args.future
+    timestep = args['future']
     model.eval()
     with torch.no_grad():
         for batch in val_iter:
             features, labels = batch
             logits = model.forward(features)
             logits = logits.to('cpu')
-            # logits = scaler.inverse_transform(logits)
+            unscaled_logits = scaler.inverse_transform(logits) # TODO: shape error
             
             batch_bs, batch_future = logits.shape
             t = np.array([range(timestep+i, timestep+i+batch_future) for i in range(batch_bs)]).flatten()
             df = pd.concat([df, pd.DataFrame({
                 'step': t,
                 # 'time': df['time'].iloc[t],
-                'price': logits.flatten(),
+                'price': unscaled_logits.flatten(),
                 'type': 'predicted',
             })])
-            timestep += args.bs
+            timestep += args['bs']
 
-    plt.figure()
-    return sns.lineplot(data=df, x='step', y='price', hue='type')
+    fig = plt.figure()
+    ax = sns.lineplot(data=df, x='step', y='price', hue='type')
+    fig.savefig("comparison.png")
+    return ax
