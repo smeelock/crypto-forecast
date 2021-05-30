@@ -115,9 +115,7 @@ def main():
     
     # save args parameters
     state = torch.load(os.path.join(args.cache, 'checkpoint.pth.tar'))
-    print(state.keys())
     state['args'] = vars(args)
-    print(state.keys())
     torch.save(state, os.path.join(args.cache, 'checkpoint.pth.tar'))
 
     # ===== Testing =====

@@ -10,7 +10,9 @@ sns.set_theme('notebook')
 
 from preprocessor import makeSplits, rawData
 
+
 def plotLoss(filepath):
+    """ Plot train/val loss of a run """
     state = torch.load(os.path.join(filepath, 'checkpoint.pth.tar'))
     assert 'history' in state.keys(), "Incomplete state file, must contain 'history'."
 
@@ -34,6 +36,7 @@ def plotLoss(filepath):
     return sns.lineplot(data=df, x='step', y='loss', hue='type')
 
 def plotTrialsLoss(trials_path):
+    """ Plot all trials' loss """
     trial_no = 0
     df = pd.DataFrame(columns=['loss', 'acc', 'step', 'trial'])
     while os.path.isdir(f"{trials_path}/trial{trial_no}"):
