@@ -57,6 +57,19 @@ def plotTrialsLoss(trials_path):
     ax.set(yscale='log')
     fig.savefig("all_trials.png")
     return ax
+
+def showStudyResults(path, show_max=20):
+    """ Show study results as a table """
+    filename = os.path.join(path, 'study.pkl')
+    study = joblib.load(filename)
+    best = study.trials_dataframe().sort_values('value', ascending=True).iloc[:show_max]
+    best = best.rename(columns={'params_hidden': 'hidden', 'params_nlayers': 'nlayers'})
+    best['rank'] = range(1, best.shape[0]+1)
+    best = best.set_index('rank')
+    best['duration(s)'] = best['duration'].dt.total_seconds()
+    # best[['value', 'duration(s)', 'batch_size', 'bidirectional', 'cell', 'dropout', 'hidden', 'lr', 'nlayers', 'use_attention']]
+    return best
+
     plt.figure()
     return sns.lineplot(data=df, x='step', y='loss', hue='trial')
 
