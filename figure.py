@@ -37,7 +37,7 @@ def plotTrialsLoss(trials_path):
     trial_no = 0
     df = pd.DataFrame(columns=['loss', 'acc', 'step', 'trial'])
     while os.path.isdir(f"{trials_path}/trial{trial_no}"):
-        state = torch.load(os.path.join(f"{trials_path}/trial{trial_no}", "checkpoint.pth.tar"))
+        state = torch.load(os.path.join(f"{trials_path}/trial{trial_no}", "checkpoint.pth.tar"), map_location='cpu')
         _, val_hist = state['history']
 
         new_df = pd.DataFrame({
@@ -49,6 +49,14 @@ def plotTrialsLoss(trials_path):
         df = pd.concat([df, new_df])
 
         trial_no += 1
+
+    df = df[df['step'] > 1] # skip first step because is weird
+
+    plt.figure('All Trials', figsize=(20,13))
+    ax = sns.lineplot(data=df, x='step', y='loss', hue='trial')
+    ax.set(yscale='log')
+    fig.savefig("all_trials.png")
+    return ax
     plt.figure()
     return sns.lineplot(data=df, x='step', y='loss', hue='trial')
 
