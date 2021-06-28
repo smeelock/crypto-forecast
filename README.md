@@ -1,5 +1,15 @@
 # Crytpocurrency Price Forecasting
 
+## Description
+As part of Tsinghua Deep Learning Course taught by Prof. Xiaolin Hu (胡晓林) and Prof. Jun Zhu (朱军), we develop a tool to forecast Bitcoin price using Deep Learning.
+
+Using data we collected on purpose for this project from [Tradingview](https://www.tradingview.com/) with different sample frequencies, our best solution consist of a  LSTM recurrent network with Dropout layers achieving an unscaled RMSE (Root Mean Squared Error) of $491 on the 15-minutes dataset.
+Over the course of the project we try out multiple architectures with various advanced deep learning techniques such as attention, bidirection, GRU cells and more.
+Tests are conducted using the present code and the Optuna library, and they give interesting insights to justify the final choice of model for predicting Bitcoin prices.
+
+More details can be found within the [report](/report/Final_report.pdf "Report") or in the presentation [slides](/report/Presentation_slides.pdf "Slides") which are available online.
+
+## Usage
 ### main.py
 ``` 
 usage: main.py [-h] [--cell {RNN,LSTM,GRU}] [--hidden INT] [--nlayers INT]
